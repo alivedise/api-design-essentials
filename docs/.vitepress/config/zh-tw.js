@@ -54,6 +54,13 @@ function getSidebar(dir) {
   }
 
   const sidebar = getFilesRecursively(docsPath);
+  sidebar.sort((a, b) => {
+    const aIsOverall = a.text && (a.text.toLowerCase().includes('overall') || a.text.includes('綜合') || a.text.includes('總覽'));
+    const bIsOverall = b.text && (b.text.toLowerCase().includes('overall') || b.text.includes('綜合') || b.text.includes('總覽'));
+    if (aIsOverall && !bIsOverall) return -1;
+    if (!aIsOverall && bIsOverall) return 1;
+    return 0;
+  });
   mdFileList = mdFileList.sort((a, b) => a.id - b.id).map((item) => item.listItem);
   const listMdContent = `---\ntitle: ADE 全列表\n---\n# ADE 全列表\n\n${mdFileList.join('\n')}\n`;
   fs.writeFileSync(resolve(docsPath, 'list.md'), listMdContent);
@@ -83,6 +90,15 @@ export const zhTW = {
       { text: '列表', link: '/zh-tw/list' },
     ],
 
-    sidebar: getSidebar('../zh-tw'),
+    sidebar: [
+      ...getSidebar('../zh-tw'),
+      {
+        text: '相關站點',
+        items: [
+          { text: 'BEE -- 後端工程精要', link: 'https://alivedise.github.io/backend-engineering-essentials/' },
+          { text: 'DEE -- 資料庫工程精要', link: 'https://alivedise.github.io/database-engineering-essentials/' },
+        ],
+      },
+    ],
   },
 };
