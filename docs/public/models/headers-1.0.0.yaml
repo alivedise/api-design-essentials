@@ -1,0 +1,647 @@
+# Standard headers
+
+Accept-Encoding:
+  name: Accept-Encoding
+  in: header
+  required: false
+  description: |-
+    The **Accept-Encoding** indicates the content encoding (usually a
+    compression algorithm) the client understands. The server selects one of
+    the proposed encodings and returns his choice in the **Content-Encoding**
+    response header.
+
+    Supported compression algorithms of the server are [**gzip**][gzip] and
+    **identity**, but other encodings from list below may be support too:
+
+    * **gzip** - a compression format that uses [Lempel-Ziv coding][gzip]
+      (LZ77) with a 32-bit CRC.
+    * **compress** - a format using the [Lempel-Ziv-Welch][lzw] (LZW)
+      algorithm.
+    * **deflate** - A compression format that uses the [zlib][zlib] structure
+      with the [deflate][deflate] compression algorithm.
+    * **br** - a compression format that uses the [Brotli][brotli] algorithm.
+    * **identity** - the identity function without modification or compression
+      used to indicate unchanged responses. This value is always considered as
+      acceptable, even if omitted.
+
+    The server may choose not to compress the body of the response, if the
+    identity value is acceptable, e.g. if the content is already compressed
+    (e.g. for JPEG content), or if the server is missing resources to perform
+    the compression operation.
+
+    **Note:** A client is allowed to explicitly forbid the identity value by
+    setting **identity;q=0** or **\*;q=0**, however, the server in return may
+    respond with a **406** (Not Acceptable) error.
+
+    See [RFC 9110 Section 12.5.3][rfc-9110-12.5.3] for further details.
+
+    [rfc-9110-12.5.3]: <https://tools.ietf.org/html/rfc9110#section-12.5.3>
+    [gzip]: <https://en.wikipedia.org/wiki/LZ77_and_LZ78#LZ77>
+    [lzw]: <https://en.wikipedia.org/wiki/LZW>
+    [zlib]: <https://en.wikipedia.org/wiki/Zlib>
+    [deflate]: <https://en.wikipedia.org/wiki/DEFLATE>
+    [brotli]: <https://en.wikipedia.org/wiki/Brotli>
+  schema:
+    type: array
+    items:
+      type: string
+  style: simple
+  explode: false
+  example: [ "gzip", "gzip;q=0.8,deflate;q=0.2", "gzip;q=0.9,identity;q=0" ]
+
+
+If-Match:
+  name: If-Match
+  in: header
+  required: false
+  description: |-
+    The **If-Match** header field is used to declare a list of identifiers that
+    are required to match the current resource version identifier in at least
+    one position as a pre-condition for executing the request on the server
+    side. This behavior is used to validate and reject optimistic updates, by
+    checking if the resource version a consumer has based his changes on is
+    outdated on arrival of the change request to prevent lost updates.
+
+    If the pre-condition fails the server will respond with status code **412**
+    (Precondition Failed). See [RFC 9110 Section 13.1.1][rfc-9110-13.1.1] as
+    well as [API Design Essentials-131][ade-131] for further details.
+
+    [rfc-9110-13.1.1]: <https://tools.ietf.org/html/rfc9110#section-13.1.1>
+    [ade-131]: <https://alivedise.github.io/api-design-essentials/131>
+  schema:
+    type: string
+  examples:
+    strong:
+      value: 5db68c06-1a68-11e9-8341-68f728c1ba70
+      summary: Strong ETag
+    weak:
+      value: W/"xy"
+      summary: Weak ETag
+
+
+If-None-Match:
+  name: If-None-Match
+  in: header
+  required: false
+  description: |-
+    The **If-None-Match header** field is used to declare a list of identifiers
+    that are required to fail matching all the current resource version
+    identifiers as a pre-condition for executing the request on the server
+    side. This is especially used in conjunction with an **\*** (asterix) that
+    is matching all possible resource identifiers to ensure the initial
+    creation of a resource. Other use cases are possible but rare.
+
+    If the pre-condition fails the server will respond with status code **412**
+    (Precondition Failed). See [RFC 9110 Section 13.1.2][rfc-9110-13.1.2] as
+    well as [API Design Essentials-133][ade-133] for further details.
+
+    [rfc-9110-13.1.2]: <https://tools.ietf.org/html/rfc9110#section-13.1.2>
+    [ade-133]: <https://alivedise.github.io/api-design-essentials/133>
+  schema:
+    type: string
+  examples:
+    strong:
+      value: 5db68c06-1a68-11e9-8341-68f728c1ba70
+      summary: Strong ETag
+    weak:
+      value: W/"xy"
+      summary: Weak ETag
+
+
+Prefer:
+  name: Prefer
+  in: header
+  required: false
+  # Do not import this schema directly, since processing directives are usually
+  # highly customized. Instead, copy the schema to your API and adjust it to
+  # your needs.
+  description: |-
+    The **Prefer** header indicates that a particular server behavior is
+    preferred by the client, but is not required for successful completion of
+    the request (see [RFC 7240][rfc-7240]. The following behaviors are
+    supported by this API:
+
+    * **respond-async** is used to suggest the server to respond as fast as
+      possible asynchronously using **202** (Accepted) instead of waiting for
+      the result.
+    * **return=<minimal|representation>** is used to suggest the server to
+      return using **204** (No Content) without resource (minimal) or using
+      **200** or **201** with resource (representation) in the response body on
+      success.
+    * **return=<total-count>** is used to suggest the server to return a total
+      result count in a collection requests supporting pagination. Since this
+      is a costly operation, it should be used with care, and the service may
+      decide to ignore this request.
+    * **wait=<delta-seconds>** is used to suggest a maximum time the server has
+      time to process the request synchronously.
+    * **handling=<strict|lenient>** is used to suggest the server to be strict
+      and report error conditions or lenient, i.e. robust and try to continue,
+      if possible.
+
+    See [RFC 7340][rfc-7240] as well as [API Design Essentials-136][ade-136]
+    for further details.
+
+    [rfc-7240]: <https://tools.ietf.org/html/rfc7240>
+    [ade-136]: <https://alivedise.github.io/api-design-essentials/136>
+  schema:
+    type: array
+    items:
+      type: string
+  style: simple
+  explode: false
+  example: [ "respond-async", "return=minimal", "wait=20", "handling=strict",
+    "respond-async,return=minimal,wait=20,handling=strict" ]
+  
+
+Idempotency-Key:
+  description: |-
+    The **Idempotency-Key** is a free identifier created by the client to
+    identify a request. It is used by the service to identify repeated request
+    to ensure idempotent behavior by sending the same (or a similar) response
+    without executing the request a second time.
+
+    Clients should be careful as any subsequent requests with the same key may
+    return the same response without further check. Thus, it is recommended to
+    use a UUID version 4 (random) or any other random string with enough
+    entropy to avoid collisions.
+
+    Keys expire after 24 hours. Clients are responsible to stay within this
+    limit, if they require idempotent behavior.
+
+    See [API Design Essentials-130][ade-130] for further details.
+
+    [ade-130]: <https://alivedise.github.io/api-design-essentials/130>
+  type: string
+  format: uuid
+  example: "7da7a728-f910-11e6-942a-68f728c1ba70"
+
+Content-Encoding:
+  required: false
+  description: |-
+    The **Content-Encoding** header lists any encoding (usually a compression
+    algorithm) applied to the message payload - in execution order. This allows
+    the recipient to decode the content in order to obtain the original payload
+    format.
+
+    Supported compression algorithms of the server are [**gzip**][gzip] and
+    **identity**, but other encoding from list below may be support too:
+
+    * **gzip** - a compression format that uses [Lempel-Ziv coding][gzip]
+      (LZ77) with a 32-bit CRC.
+    * **compress** - a format using the [Lempel-Ziv-Welch][lzw] (LZW)
+      algorithm.
+    * **deflate** - A compression format that uses the [zlib][zlib] structure
+      with the [deflate][deflate] compression algorithm.
+    * **br** - a compression format that uses the [Brotli][brotli] algorithm.
+    * **identity** - the identity function without modification or compression
+      used to indicate unchanged responses. This value is always considered as
+      acceptable, even if omitted.
+
+    **Note:** the original media/content type is specified in the
+    **Content-Type**-header, while the **Content-Encoding** applies to the
+    representation of the data. If the original media is encoded in some way,
+    e.g. as a zip file, then this information is not be included in the
+    **Content-Encoding** header.
+
+    See [RFC 9110 Section 8.4][rfc-9110-8.4] for further details.
+
+    [rfc-9110-8.4]: <https://tools.ietf.org/html/rfc9110#section-8.4>
+    [gzip]: <https://en.wikipedia.org/wiki/LZ77_and_LZ78#LZ77>
+    [lzw]: <https://en.wikipedia.org/wiki/LZW>
+    [zlib]: <https://en.wikipedia.org/wiki/Zlib>
+    [deflate]: <https://en.wikipedia.org/wiki/DEFLATE>
+    [brotli]: <https://en.wikipedia.org/wiki/Brotli>
+  schema:
+    type: array
+    items:
+      type: string
+  style: simple
+  explode: false
+  example: [ "gzip", "deflate", "gzip,deflate" ]
+
+If-Modified-Since:
+  name: If-Modified-Since
+  in: header
+  required: false
+  description: |-
+    The **If-Modified-Since** header is used in conditional GET requests to allow servers to send responses only if the requested resource has been modified since the specified date.
+
+    - Clients SHOULD include this header when requesting resources that may have been cached.
+    - Servers MUST compare the date in this header with the last modification date of the requested resource.
+    - If the resource has not been modified, servers MUST return a 304 (Not Modified) status code.
+    - If the resource has been modified, servers MUST return a 200 (OK) status code with the updated resource.
+
+    See [API Design Essentials-132](https://alivedise.github.io/api-design-essentials/132) for more details.
+  schema:
+    type: string
+    format: http-date
+  example: "Wed, 21 Oct 2023 07:28:00 GMT"
+
+If-Unmodified-Since:
+  name: If-Unmodified-Since
+  in: header
+  required: false
+  description: |-
+    The **If-Unmodified-Since** header is used in conditional DELETE requests to allow servers to delete resources only if the requested resource has not been modified since the specified date.
+
+    - Clients SHOULD include this header when deleting resources that may have been modified.
+    - Servers MUST compare the date in this header with the last modification date of the requested resource.
+    - If the resource has not been modified, servers MUST delete the resource and return a 204 (No Content) status code.
+    - If the resource has been modified, servers MUST return a 412 (Precondition Failed) status code.
+
+    See [API Design Essentials-149](https://alivedise.github.io/api-design-essentials/149) for more details.
+  schema:
+    type: string
+    format: http-date
+  example: "Wed, 21 Oct 2023 07:28:00 GMT"
+
+
+ETag:
+  required: false
+  description: |-
+    The **ETag** header field in a response provides an opaque quoted string
+    identifying the distinct delivered resource. The same selected resource
+    depending on version and representation may be identified by multiple
+    identifiers. The **ETag** value is guaranteed to change whenever the
+    resource changes, and thereby enabling optimistic updates.
+
+    An identifier consists of an opaque quoted string, possibly prefixed by
+    a weakness indicator. See [RFC 9110 Section 8.8.3][rfc-9110-8.8.3] as
+    well as [API Design Essentials-128][ade-128] for further details.
+
+    [rfc-9110-8.8.3]: <https://tools.ietf.org/html/rfc9110#section-8.8.3>
+    [ade-128]: <https://alivedise.github.io/api-design-essentials/128>
+  schema:
+    type: string
+  examples:
+    strong:
+      value: 5db68c06-1a68-11e9-8341-68f728c1ba70
+      summary: Strong ETag
+    weak:
+      value: W/"xy"
+      summary: Weak ETag
+
+Range:
+  name: Range
+  in: header
+  required: false
+  description: |-
+    The **Range** header allows clients to request a specific part of a resource instead of the entire resource. This is useful for efficient handling of large datasets, partial responses, and resumable downloads.
+
+    - Clients can use this header to request specific byte ranges or other units (e.g., items, records) of a resource.
+    - Servers supporting range requests should respond with a 206 Partial Content status and include the Content-Range header in the response.
+    - If the range request cannot be satisfied, servers should respond with a 416 Range Not Satisfiable status.
+
+    See [API Design Essentials-137](https://alivedise.github.io/api-design-essentials/137) for more details.
+  schema:
+    type: string
+  example: "bytes=0-1023"
+
+Save-Data:
+  name: Save-Data
+  in: header
+  required: false
+  description: |-
+    The **Save-Data** header indicates the client's preference for reduced data usage.
+
+    - When set to "on", it suggests that the server should send a reduced data response if possible.
+    - Servers can use this information to optimize content delivery for data-constrained environments.
+
+    See [API Design Essentials-354](https://alivedise.github.io/api-design-essentials/354) for more details.
+  schema:
+    type: string
+    enum:
+      - "on"
+  example: "on"
+
+Sec-CH-UA:
+  name: Sec-CH-UA
+  in: header
+  required: false
+  description: |-
+    The **Sec-CH-UA** header provides information about the user agent (browser) in a more privacy-preserving way.
+
+    - It includes brand and version information for the browser.
+    - This header is part of the Client Hints mechanism and is sent automatically by supporting browsers.
+
+    See [API Design Essentials-354](https://alivedise.github.io/api-design-essentials/354) for more details.
+  schema:
+    type: string
+  example: '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"'
+
+Sec-CH-UA-Mobile:
+  name: Sec-CH-UA-Mobile
+  in: header
+  required: false
+  description: |-
+    The **Sec-CH-UA-Mobile** header indicates whether the user agent is running on a mobile device.
+
+    - A value of "?1" suggests a mobile device, while "?0" suggests a non-mobile device.
+    - This information can be used to serve appropriate content or adjust layouts for mobile users.
+
+    See [API Design Essentials-354](https://alivedise.github.io/api-design-essentials/354) for more details.
+  schema:
+    type: string
+  example: "?0"
+
+Sec-CH-UA-Platform:
+  name: Sec-CH-UA-Platform
+  in: header
+  required: false
+  description: |-
+    The **Sec-CH-UA-Platform** header provides information about the platform on which the user agent is running.
+
+    - It indicates the operating system of the client device.
+    - This can be used to tailor responses or functionality based on the client's platform.
+
+    See [API Design Essentials-354](https://alivedise.github.io/api-design-essentials/354) for more details.
+  schema:
+    type: string
+  example: '"macOS"'
+
+Expect:
+  name: Expect
+  in: header
+  required: false
+  description: |-
+    The **Expect** header is used by clients to indicate certain server behaviors that are required before sending the request body.
+    The primary use is to send "100-continue" to inform the server that the client is about to send a large request body.
+
+    - Clients SHOULD use this header for large payloads to minimize the risk of sending data that might be rejected by the server.
+    - Servers MUST respond with a 100 Continue status if they're ready to receive the request body, or an appropriate error status if not.
+    - Clients SHOULD wait for the server's response before sending the request body.
+
+    See [API Design Essentials-368](https://alivedise.github.io/api-design-essentials/368) for more details.
+  schema:
+    type: string
+    enum:
+      - 100-continue
+  example: "100-continue"
+
+Accept-CH:
+  required: false
+  description: |-
+    The **Accept-CH** header is used by servers to specify which Client Hints headers they accept.
+
+    - It is sent in the server's response to indicate which Client Hints the client should include in subsequent requests.
+    - This allows for more efficient and targeted data exchange between client and server.
+
+    See [API Design Essentials-354](https://alivedise.github.io/api-design-essentials/354) for more details.
+  schema:
+    type: string
+  example: "DPR, Viewport-Width, Width"
+
+Location:
+  required: false
+  description: |-
+    The **Location** header is used to specify the URL of a newly created resource or to redirect the recipient to a different URL.
+
+    - In responses to POST requests that create a new resource, the Location header MUST be included to provide the URL of the newly created resource.
+    - For 3xx (Redirection) responses, the Location header MUST be included to specify the target of the redirection.
+    - The value MUST be a single absolute URL.
+
+    See [API Design Essentials-135](https://alivedise.github.io/api-design-essentials/135) for more details.
+  schema:
+    type: string
+    format: uri
+  example: "https://api.example.com/v1/resources/1234"
+
+Last-Modified:
+  name: Last-Modified
+  in: header
+  required: false
+  description: |-
+    The **Last-Modified** header indicates the date and time at which the origin server believes the resource was last modified. It plays a crucial role in caching and conditional requests.
+
+    - Servers MUST include this header for cacheable resources when possible.
+    - The Last-Modified date SHOULD be as accurate as possible.
+    - If the last modification time cannot be determined, servers SHOULD NOT send the Last-Modified header.
+    - Clients SHOULD use the If-Modified-Since header in conjunction with Last-Modified for efficient caching.
+    - For frequently changing resources, consider using the ETag header as an alternative or supplement.
+
+    See [API Design Essentials-134](https://alivedise.github.io/api-design-essentials/134) for more details.
+  schema:
+    type: string
+    format: http-date
+  example: "Wed, 21 Oct 2023 07:28:00 GMT"
+
+Cache-Control:
+  name: Cache-Control
+  in: header
+  required: false
+  description: |-
+    The **Cache-Control** header field is providing directives to control how
+    proxies and clients are allowed to cache responses results for performance.
+    Clients and proxies are free to not support caching of results, however if
+    they do, they must obey all directives mentioned in [RFC-9111 Section
+    5.2][rfc-9111-5.2] to the word.
+
+    In case of caching, the directive provides the scope of the cache entry,
+    i.e. only for the original user (private) or shared between all users
+    (public), the lifetime of the cache entry in seconds (max-age), and the
+    strategy how to handle a stale cache entry (must-revalidate). Please note,
+    that the lifetime and validation directives for shared caches are different
+    (s-maxage, proxy-revalidate).
+
+    See [RFC 9111 Section 5.2][rfc-9111-5.2] as well as [API Design Essentials-124][ade-124] for further details.
+
+    [rfc-9111-5.2]: <https://tools.ietf.org/html/rfc9111#name-cache-control>
+    [ade-124]: <https://alivedise.github.io/api-design-essentials/124>
+  schema:
+    type: array
+    items:
+      type: string
+  style: simple
+  explode: false
+  example: [ "private,must-revalidate,max-age=3600" ]
+
+
+Vary:
+  required: false
+  description: |-
+    The **Vary** header field in the response describes which parts of the
+    request message, aside from the method, the **Host** header field, and the
+    request target path, might have influence the server in selecting the
+    presented response. A client or proxy that caches the response must respect
+    this information to ensure that it delivers the correct cache entry (see
+    [RFC-9110 Section 12.5.5][rfc-9110-12.5.5]).
+
+    The value consists of either a single **\*** (asterisk ) or a list of
+    case-insensitive header field names.
+
+    See [RFC 9110 Section 12.5.5][rfc-9110-12.5.5] as well as [API Design Essentials-144][ade-144] for further details.
+
+    [rfc-9110-12.5.5]: <https://tools.ietf.org/html/rfc9110#section-12.5.5>
+    [ade-144]: <https://alivedise.github.io/api-design-essentials/144>
+  schema:
+    type: array
+    items:
+      type: string
+  style: simple
+  explode: false
+  example: [ "accept-encoding,accept-language" ]
+
+
+Deprecation:
+  required: false
+  description: |-
+    The **Deprecation** response header (see [Draft "The Deprecation HTTP
+    Header Field"][draft]) announces an upcoming deprecation of a feature or
+    resource. The deprecation value is either a timestamp as defined in [RFC
+    9110 Section 5.6.7][rfc-9110-5.6.7] or `true` - if the feature is already
+    deprecated.
+
+    The scope of the distinct deprecated feature or resource must be derived
+    from the API spec. If the timestamp points to the past, the API spec also
+    contains a migration advise.
+
+    Clients should monitor the usage of **Deprecation** headers and notify
+    about them in time, so that migration measures can be planned and executed
+    timely (see also [API Design Essentials-127][ade-127]).
+
+    [draft]: <https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-deprecation-header-02>
+    [rfc-9110-5.6.7]: <https://tools.ietf.org/html/rfc9110#section-5.6.7>
+    [ade-127]: <https://alivedise.github.io/api-design-essentials/127>
+  schema:
+    type: string
+    format: date-time
+  example: [ "Tue, 31 Dec 2024 23:59:59 GMT" ]
+
+
+Sunset:
+  required: false
+  description: |-
+    The **Sunset** response header (see [RFC 8594][rfc-8594]) communicates the
+    point in time at which the feature or resource becomes unresponsive. The
+    sunset value is providing a timestamp as defined in [RFC 9110 Section
+    5.6.7][rfc-9110-5.6.7] usually pointing to the future. If a sunset value
+    points to the past, the feature or resource must be expected to become
+    unavailable at any time.
+
+    Clients should monitor the usage of **Sunset** headers and warn/alert about
+    them before the sunset time has come to take counter measures, e.g. prepare
+    a client shutdown or migration (see also [API Design Essentials-140][ade-140]).
+
+    [rfc-8594]: <https://tools.ietf.org/html/rfc8594>
+    [rfc-9110-5.6.7]: <https://tools.ietf.org/html/rfc9110#section-5.6.7>
+    [ade-140]: <https://alivedise.github.io/api-design-essentials/140>
+  schema:
+    type: string
+    format: date-time
+  example: "Wed, 31 Dec 2025 23:59:59 GMT"
+
+
+# Custom common headers
+
+
+X-Request-ID:
+  required: false
+  description: |-
+    The **X-Request-ID** is a custom header containing a unique request identifier. It can be used to trace and investigate request-related log entries and events.
+
+    - Clients MAY provide this header in the request.
+    - If not provided by the client, the server MUST generate a unique request ID.
+    - The server MUST return the same request ID in the response.
+    - The request ID SHOULD be used in all related log entries.
+
+    See [API Design Essentials-142](https://alivedise.github.io/api-design-essentials/142) for more details.
+  schema:
+    type: string
+    format: uuid
+  example: "5db68c06-1a68-11e9-8341-68f728c1ba70"
+
+Link:
+  description: |-
+    Link header containing URLs to related resources with custom rel attributes.
+    The `rel` attribute could be "self", "customer", "items", or any custom relationship.
+
+    See [API Design Essentials-145](https://alivedise.github.io/api-design-essentials/145) for more details.
+  schema:
+    type: array
+    items:
+      type: object
+      properties:
+        href:
+          type: string
+          format: uri
+          description: The URL of the linked resource
+        rel:
+          type: string
+          description: |-
+            The relationship type, such as "self", "customer", "items", or a custom rel type.
+        type:
+          type: string
+          description: The media type of the linked resource
+          example: application/json
+        hreflang:
+          type: string
+          description: The language of the linked resource
+          example: en
+
+X-RateLimit-Limit:
+  required: false
+  description: |-
+    The **X-RateLimit-Limit** header indicates the maximum number of requests allowed in a given time period.
+    This header helps API consumers understand their usage limits and manage their request rates accordingly.
+
+    See [API Design Essentials-138](https://alivedise.github.io/api-design-essentials/138) for more details.
+  schema:
+    type: integer
+  example: 1000
+
+X-RateLimit-Remaining:
+  required: false
+  description: |-
+    The **X-RateLimit-Remaining** header shows the number of requests remaining in the current time period.
+    This header allows API consumers to track their remaining quota and adjust their request patterns if necessary.
+
+    See [API Design Essentials-138](https://alivedise.github.io/api-design-essentials/138) for more details.
+  schema:
+    type: integer
+  example: 985
+
+X-RateLimit-Reset:
+  required: false
+  description: |-
+    The **X-RateLimit-Reset** header specifies the time at which the rate limit counters will reset.
+    This is typically provided as a Unix timestamp. It helps API consumers understand when they can resume 
+    making requests at the full rate.
+
+    See [API Design Essentials-138](https://alivedise.github.io/api-design-essentials/138) for more details.
+  schema:
+    type: integer
+    format: int64
+  example: 1623456789
+
+Retry-After:
+  required: false
+  description: |-
+    The **Retry-After** header indicates how long the client should wait before making another request.
+    This header is particularly useful when the rate limit has been exceeded or when the service is temporarily unavailable.
+    The value can be an HTTP-date or a number of seconds to delay.
+
+    See [API Design Essentials-139](https://alivedise.github.io/api-design-essentials/139) for more details.
+  schema:
+    oneOf:
+      - type: integer
+      - type: string
+        format: http-date
+  examples:
+    seconds:
+      value: 120
+    http-date:
+      value: "Fri, 31 Dec 2023 23:59:59 GMT"
+
+Server:
+  required: false
+  description: |-
+    The **Server** header contains information about the software used by the origin server to handle the request.
+    This header can be used for debugging and identifying the server software.
+    It is important to note that exposing server information can pose security risks.
+
+    See [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-server) as well as [ADE-148](https://alivedise.github.io/api-design-essentials/136)
+    for further details.
+  schema:
+    type: string
+  example: "COMPANY-OPENAPI/1.0.0"
+

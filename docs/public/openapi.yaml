@@ -1,0 +1,803 @@
+openapi: 3.1.0
+info:
+  title: Universe API Sample
+  version: 1.0.0
+  description: API for handling Universe
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  contact:
+    name: Alive Kuo
+    email: api@example.com
+
+tags:
+  - name: dev
+    description: Development related operations
+  - name: galaxy
+    description: Galaxy related operations
+  - name: planet
+    description: Planet related operations
+  - name: satellite
+    description: Satellite related operations
+  - name: celestial-object
+    description: Celestial object related operations
+  - name: event
+    description: Event related operations
+
+servers:
+  - url: https://api.alive.dev/v1
+
+security:
+  - JWT: []
+
+paths:
+  /galaxies:
+    get:
+      tags: ['dev', 'galaxy']
+      summary: List all galaxies
+      operationId: listGalaxies
+      description: List all galaxies belong to current universe
+      x-audience: PUBLIC_EXTERNAL
+      responses:
+        '200':
+          description: A list of galaxies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalaxyList'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+    post:
+      tags: ['dev']
+      summary: Create a new galaxy
+      operationId: createGalaxy
+      description: Create a new galaxy to current related universe
+      x-audience: PARTNER_EXTERNAL
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          schema:
+            $ref: './models/headers-1.0.0.yaml#/Idempotency-Key'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Galaxy'
+      responses:
+        '201':
+          description: Galaxy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Galaxy'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+  /galaxies/{id}:
+    patch:
+      x-audience: PARTNER_EXTERNAL
+      parameters:
+        - name: embed
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Embed planet information if set to 'planets'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      tags: ['dev']
+      summary: Update a galaxy
+      operationId: updateGalaxy
+      description: Update a galaxy in the current universe. See [ADE-115](https://alivedise.github.io/api-design-essentials/115) for JSON-PATCH based patch request.
+      requestBody:
+        required: true
+        content:
+          application/json-patch+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PatchRequest'
+      responses:
+        '200':
+          description: Galaxy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Galaxy'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+
+  /galaxies/{id}/siblings:
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['dev']
+      summary: List all galaxy siblings
+      operationId: listGalaxySiblings
+      description: List the sibling galaxies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of galaxy siblings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalaxyList'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+    post:
+      x-audience: PARTNER_EXTERNAL
+      tags: ['dev']
+      summary: Assign siblings to a specific galaxy
+      operationId: assignGalaxySiblings
+      description: Assign siblings to a specific galaxy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siblingIds:
+                  type: array
+                  description: List of galaxy IDs to be assigned as siblings
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Siblings assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Galaxy'
+        '404':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/404'
+        '400':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/400'
+  /galaxies/{id}/stars:
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['dev']
+      summary: List all stars in the galaxy
+      operationId: listGalaxyStars
+      description: List all stars in the galaxy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of stars in the galaxy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StarList'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+  /galaxies/{id}/planets:
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['dev']
+      summary: List all planets in the galaxy
+      operationId: listGalaxyPlanets
+      description: List all planets in the galaxy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of galaxies
+          content:
+            application/planet-v1+json:
+              schema:
+                type: object
+                properties:
+                  planets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Planet'
+            application/planet-v2+json:
+              schema:
+                type: object
+                properties:
+                  planets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlanetV2'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+  /galaxies/{id}/celestial-objects:
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['dev']
+      summary: List all celestial objects in the galaxy
+      operationId: listGalaxyCelestialObject
+      description: List all celestial objects including starts, planets and unknown celestial objects in the galaxy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of celestial objects in the galaxy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CelestialObjectList'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+  /planets/{id}:
+    put:
+      x-audience: COMPONENT_INTERNAL
+      tags: ['dev']
+      summary: Update a planet
+      operationId: updatePlanet
+      description: Update a planet in the universe. For missing fields, it will be just omitted to update the planet. This operation supports `If-Match` conditional request.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: 'https://alivedise.github.io/api-design-essentials/models/headers-1.0.0.yaml#/If-Match'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Planet'
+      responses:
+        '200':
+          description: Planet updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Planet'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+        '404':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/404'
+    delete:
+      x-audience: COMPONENT_INTERNAL
+      tags: ['dev']
+      summary: Delete a planet
+      operationId: deletePlanet
+      description: Delete a planet from the universe. Please note that ETag is required for this operation. You can get the ETag from the `GET` response. Also, the related satellites will be deleted as well.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: false
+          schema:
+            $ref: 'https://alivedise.github.io/api-design-essentials/models/headers-1.0.0.yaml#/If-Match'
+      responses:
+        '200':
+          description: Planet deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Planet'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+        '404':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/404'
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['dev']
+      summary: Get planet info
+      operationId: getPlanet
+      description: Get planet info
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: expand
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Comma-separated list of resource relationships to expand; expand with `galaxy` would replace the galaxy field from galaxyId to the full galaxy resource.
+      responses:
+        '200':
+          description: A list of planets in the galaxy
+          headers:
+            ETag:
+              $ref: 'https://alivedise.github.io/api-design-essentials/models/headers-1.0.0.yaml#/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Planet'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+    patch:
+      x-audience: PARTNER_EXTERNAL
+      tags: ['dev']
+      summary: Update a planet using Merge Patch
+      operationId: updatePlanetMergePatch
+      description: Update a planet using Merge Patch as per RFC 7386.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            $ref: './models/headers-1.0.0.yaml#/Idempotency-Key'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/PlanetPatch'
+      responses:
+        '200':
+          description: Galaxy updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Planet'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+  /planets/{id}/satellites:
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['dev']
+      summary: Get a list of satellites for a planet
+      operationId: listSatellites
+      description: Get a list of satellites for a specific planet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of satellites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SatelliteList'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+  /planets/{planet-id}/satellites/{satellite-id}:
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['dev']
+      summary: Get a satellite
+      operationId: getSatellite
+      description: Get a specific satellite by its ID
+      parameters:
+        - name: planet-id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: satellite-id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Satellite details
+          headers:
+            Last-Modified:
+              $ref: 'https://alivedise.github.io/api-design-essentials/models/headers-1.0.0.yaml#/Last-Modified'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Satellite'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+        '404':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/404'
+    delete:
+      x-audience: COMPONENT_INTERNAL
+      tags: ['dev']
+      summary: Delete a satellite
+      operationId: deleteSatellite
+      description: Delete a satellite from the universe. The `If-Unmodified-Since` is optional. You can get the modified time from the `GET` response in the `Last-Modified` header.
+      parameters:
+        - name: planet-id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: satellite-id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Unmodified-Since
+          in: header
+          required: false
+          schema:
+            $ref: './models/headers-1.0.0.yaml#/If-Unmodified-Since'
+      responses:
+        '204':
+          description: Satellite deleted successfully
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+        '403':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/403'
+        '404':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/404'
+
+  /events:
+    post:
+      x-audience: PARTNER_EXTERNAL
+      tags: ['dev']
+      operationId: createCloudEvent
+      summary: Create a new CloudEvent
+      description: This operation creates a new CloudEvent with extended data.
+      requestBody:
+        content:
+          application/cloudevents+json:
+            schema:
+              $ref: '#/components/schemas/ExtendedCloudEvent'
+      responses:
+        '201':
+          description: CloudEvent created successfully
+          content:
+            application/cloudevents+json:
+              schema:
+                $ref: '#/components/schemas/ExtendedCloudEvent'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['event']
+      operationId: listCloudEvents
+      summary: Get a list of CloudEvents
+      description: Get a list of events
+      responses:
+        '200':
+          description: List of CloudEvents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExtendedCloudEvent'
+        '401':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/401'
+
+  /events/{id}:
+    get:
+      x-audience: PUBLIC_EXTERNAL
+      tags: ['event']
+      description: Get a cloudevent by id
+      operationId: getCloudEvent
+      summary: Get a CloudEvent by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Single CloudEvent
+          headers:
+            ETag:
+              $ref: 'https://alivedise.github.io/api-design-essentials/models/headers-1.0.0.yaml#/ETag'
+          content:
+            application/cloudevents+json:
+              schema:
+                $ref: '#/components/schemas/ExtendedCloudEvent'
+        '404':
+          $ref: 'https://alivedise.github.io/api-design-essentials/models/problem-1.0.0.yaml#/404'
+
+components:
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CelestialType:
+      type: string
+      enum:
+        - PLANET
+        - STAR
+        - GALAXY
+        - BLACK_HOLE
+      description: Defines the type of celestial object.
+    PlanetType:
+      type: string
+      enum:
+        - TERRESTRIAL
+        - GAS_GIANT
+        - ICE_GIANT
+        - UNKNOWN
+      description: Defines the type of planet.
+    GalaxyList:
+      type: object
+      properties:
+        galaxies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Galaxy'
+    Galaxy:
+      type: object
+      description: Galaxy infomation
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the galaxy
+        name:
+          type: string
+          description: Name of the galaxy
+        siblings:
+          type: array
+          items:
+            $schema: '#/components/schemas/Galaxy'
+      required:
+        - id
+        - name
+    StarList:
+      type: object
+      properties:
+        stars:
+          type: array
+          items:
+            $ref: '#/components/schemas/Star'
+    Star:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the star
+        name:
+          type: string
+          description: Name of the star
+        celestialType:
+          $ref: '#/components/schemas/CelestialType'
+        type:
+          type: string
+          description: Type of the star (e.g., red dwarf, blue giant)
+          enum: ['RED_DRARF', 'BLUE_GIANT']
+        mass:
+          type: number
+          description: Mass of the star in solar masses
+      required:
+        - id
+        - name
+        - type
+        - mass
+    PlanetProperties:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the planet
+        celestialType:
+          $ref: '#/components/schemas/CelestialType'
+        name:
+          type: string
+          description: Name of the planet
+        type:
+          $ref: '#/components/schemas/PlanetType'
+        size:
+          type: number
+          description: Size of the planet in Earth radii
+        galaxy:
+          oneOf:
+            - type: string
+              description: Belonging galaxy id of the planet
+            - $ref: '#/components/schemas/Galaxy'
+    Planet:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PlanetProperties'
+        - required:
+          - id
+          - name
+          - type
+          - size
+    PlanetPatch:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PlanetProperties'
+    PlanetV2:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the planet
+        celestialType:
+          $ref: '#/components/schemas/CelestialType'
+        name:
+          type: string
+          description: Name of the planet
+        type:
+          $ref: '#/components/schemas/PlanetType'
+        size:
+          type: number
+          description: Size of the planet in Earth radii
+        atmosphere:
+          type: string
+          description: Composition of the planet's atmosphere
+      required:
+        - id
+        - name
+        - type
+        - size
+        - atmosphere
+    CelestialObjectList:
+      type: object
+      properties:
+        celestialObjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/CelestialObject'
+    CelestialObject:
+      type: object
+      anyOf:
+        - $ref: '#/components/schemas/Star'
+        - $ref: '#/components/schemas/Planet'
+      discriminator:
+        propertyName: celestialType
+        mapping:
+          STAR: '#/components/schemas/Star'
+          PLANET: '#/components/schemas/Planet'
+      required:
+        - id
+        - name
+        - type
+        - size
+    SatelliteList:
+      type: object
+      properties:
+        satellites:
+          type: array
+          items:
+            $ref: '#/components/schemas/Satellite'
+    Satellite:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        planetId:
+          type: string
+          description: ID of the planet the satellite orbits
+    ExtendedCloudEvent:
+      allOf:
+        - $ref: 'https://alivedise.github.io/api-design-essentials/models/event-1.0.0.yaml#/CloudEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                customField1:
+                  type: string
+                  description: Custom field 1 for extended data
+                customField2:
+                  type: integer
+                  description: Custom field 2 for extended data
+              required:
+                - customField1
+                - customField2
+    PatchRequest:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/JSONPatchRequestAddReplaceTest'
+          - $ref: '#/components/schemas/JSONPatchRequestRemove'
+          - $ref: '#/components/schemas/JSONPatchRequestMoveCopy'
+    JSONPatchRequestAddReplaceTest:
+      type: object
+      additionalProperties: false
+      required:
+        - value
+        - op
+        - path
+      properties:
+        path:
+          description: A JSON Pointer path.
+          type: string
+        value:
+          description: The value to add, replace or test.
+        op:
+          description: The operation to perform.
+          type: string
+          enum:
+            - add
+            - replace
+            - test
+    JSONPatchRequestRemove:
+      type: object
+      additionalProperties: false
+      required:
+        - op
+        - path
+      properties:
+        path:
+          description: A JSON Pointer path.
+          type: string
+        op:
+          description: The operation to perform.
+          type: string
+          enum:
+            - remove
+    JSONPatchRequestMoveCopy:
+      type: object
+      additionalProperties: false
+      required:
+        - from
+        - op
+        - path
+      properties:
+        path:
+          description: A JSON Pointer path.
+          type: string
+        op:
+          description: The operation to perform.
+          type: string
+          enum:
+            - move
+            - copy
+        from:
+          description: A JSON Pointer path.
+          type: string

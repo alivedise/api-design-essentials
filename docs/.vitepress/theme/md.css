@@ -90,6 +90,11 @@ ul li, ol li {
   font-weight: bold;
 }
 
+.recommended-highlight {
+  color: blue;
+  font-weight: bold;
+}
+
 /* 選擇 markdown-it 生成的表格 */
 table {
   width: 100%;

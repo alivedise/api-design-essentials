@@ -1,0 +1,86 @@
+CloudEvent:
+  type: object
+  required:
+    - specversion
+    - type
+    - source
+    - id
+  properties:
+    specversion:
+      type: string
+      enum: ['1.0']
+    type:
+      type: string
+      description: Event type following [ADE-603](https://alivedise.github.io/api-design-essentials/603) naming conventions
+      example: 'com.example.someevent.v1.occurred'
+    source:
+      type: string
+      format: uri-reference
+      description: Event source following [ADE-604](https://alivedise.github.io/api-design-essentials/604) guidelines
+      example: 'https://example.com/v1/planets/earth'
+    id:
+      type: string
+      description: Event identifier
+    time:
+      type: string
+      format: date-time
+      description: Event occurrence time or received time ([ADE-605](https://alivedise.github.io/api-design-essentials/605))
+    datacontenttype:
+      type: string
+      default: application/json
+    data:
+      type: object
+      description: Event payload
+    test:
+      type: string
+      pattern: '^[a-z]+\.[a-z]+$'
+      description: Test marker following [ADE-606](https://alivedise.github.io/api-design-essentials/606) guidelines
+    partitionkey:
+      type: string
+      description: Partition key for event routing ([ADE-609](https://alivedise.github.io/api-design-essentials/609))
+    sequence:
+      type: string
+      description: Event sequence for ordering ([ADE-610](https://alivedise.github.io/api-design-essentials/610))
+    severity:
+      type: string
+      enum: ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']
+      description: Event severity level ([ADE-611](https://alivedise.github.io/api-design-essentials/611))
+    recordedtime:
+      type: string
+      format: date-time
+      description: Time when the event was recorded ([ADE-612](https://alivedise.github.io/api-design-essentials/612))
+    expirytime:
+      type: string
+      format: date-time
+      description: Expiration time for temporary events ([ADE-608](https://alivedise.github.io/api-design-essentials/608))
+    traceparent:
+      type: string
+      description: Trace context for distributed tracing ([ADE-607](https://alivedise.github.io/api-design-essentials/607))
+      example: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01'
+    tracestate:
+      type: string
+      description: Trace state for distributed tracing ([ADE-607](https://alivedise.github.io/api-design-essentials/607))
+      example: 'congo=t61rcWkgMzE'
+
+CloudEventResponse:
+  description: Single CloudEvent response
+  content:
+    application/cloudevents+json:
+      schema:
+        $ref: '#/CloudEvent'
+
+CloudEventArrayResponse:
+  description: CloudEvent array response
+  content:
+    application/cloudevents+json:
+      schema:
+        type: array
+        items:
+          $ref: '#/CloudEvent'
+
+CloudEventRequest:
+  description: CloudEvent request body
+  content:
+    application/cloudevents+json:
+      schema:
+        $ref: '#/CloudEvent'

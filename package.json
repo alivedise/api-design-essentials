@@ -1,21 +1,41 @@
 {
-  "name": "adp-vitepress",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "api-design-essentials",
+  "version": "0.0.12",
+  "description": "API Design Essentials",
+  "homepage": "https://alivedise.github.io/api-design-essentials/",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "docs:lint": "markdownlint-cli2 \"**/*.md\" \"#node_modules\""
   },
+  "files": [
+    "dist",
+    "changes",
+    "!**/*.spec.js",
+    "!**/__tests__",
+    "README.md"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@redocly/openapi-core": "^1.19.0",
     "@vite-pwa/vitepress": "^0.5.0",
+    "esbuild": "^0.23.0",
     "gray-matter": "^4.0.3",
     "markdown-it": "^14.1.0",
-    "vitepress": "^1.3.1"
+    "markdownlint-cli2": "^0.13.0",
+    "mermaid": "^10.9.1",
+    "vitepress": "^1.3.1",
+    "vitepress-plugin-mermaid": "^2.0.16",
+    "workbox-window": "^7.1.0"
+  },
+  "packageManager": "pnpm@8.15.5",
+  "dependencies": {
+    "axios": "^1.7.3",
+    "js-yaml": "^4.1.0",
+    "redoc": "^2.1.5"
   }
 }

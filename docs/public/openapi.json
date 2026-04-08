@@ -1,0 +1,1411 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Universe API Sample",
+    "version": "1.0.0",
+    "description": "API for handling Universe",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "contact": {
+      "name": "Alive Kuo",
+      "email": "api@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.alive.dev/v1"
+    }
+  ],
+  "security": [
+    {
+      "JWT": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "dev",
+      "description": "Development related operations"
+    },
+    {
+      "name": "event",
+      "description": "Event related operations"
+    }
+  ],
+  "paths": {
+    "/galaxies": {
+      "get": {
+        "tags": [
+          "dev"
+        ],
+        "summary": "List all galaxies",
+        "operationId": "listGalaxies",
+        "description": "List all galaxies belong to current universe",
+        "x-audience": "PUBLIC_EXTERNAL",
+        "responses": {
+          "200": {
+            "description": "A list of galaxies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GalaxyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "dev"
+        ],
+        "summary": "Create a new galaxy",
+        "operationId": "createGalaxy",
+        "description": "Create a new galaxy to current related universe",
+        "x-audience": "PARTNER_EXTERNAL",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "schema": {
+              "$ref": "#/components/schemas/Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Galaxy"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Galaxy created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Galaxy"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      }
+    },
+    "/galaxies/{id}": {
+      "patch": {
+        "x-audience": "PARTNER_EXTERNAL",
+        "parameters": [
+          {
+            "name": "embed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Embed planet information if set to 'planets'"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "dev"
+        ],
+        "summary": "Update a galaxy",
+        "operationId": "updateGalaxy",
+        "description": "Update a galaxy in the current universe. See [ADE-115](https://alivedise.github.io/api-design-essentials/115) for JSON-PATCH based patch request.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PatchRequest"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Galaxy updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Galaxy"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      }
+    },
+    "/galaxies/{id}/siblings": {
+      "get": {
+        "x-audience": "PUBLIC_EXTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "List all galaxy siblings",
+        "operationId": "listGalaxySiblings",
+        "description": "List the sibling galaxies",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of galaxy siblings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GalaxyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      },
+      "post": {
+        "x-audience": "PARTNER_EXTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "Assign siblings to a specific galaxy",
+        "operationId": "assignGalaxySiblings",
+        "description": "Assign siblings to a specific galaxy",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "siblingIds": {
+                    "type": "array",
+                    "description": "List of galaxy IDs to be assigned as siblings",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Siblings assigned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Galaxy"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          }
+        }
+      }
+    },
+    "/galaxies/{id}/stars": {
+      "get": {
+        "x-audience": "PUBLIC_EXTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "List all stars in the galaxy",
+        "operationId": "listGalaxyStars",
+        "description": "List all stars in the galaxy",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of stars in the galaxy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StarList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      }
+    },
+    "/galaxies/{id}/planets": {
+      "get": {
+        "x-audience": "PUBLIC_EXTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "List all planets in the galaxy",
+        "operationId": "listGalaxyPlanets",
+        "description": "List all planets in the galaxy",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of galaxies",
+            "content": {
+              "application/planet-v1+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "planets": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Planet"
+                      }
+                    }
+                  }
+                }
+              },
+              "application/planet-v2+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "planets": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PlanetV2"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      }
+    },
+    "/galaxies/{id}/celestial-objects": {
+      "get": {
+        "x-audience": "PUBLIC_EXTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "List all celestial objects in the galaxy",
+        "operationId": "listGalaxyCelestialObject",
+        "description": "List all celestial objects including starts, planets and unknown celestial objects in the galaxy",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of celestial objects in the galaxy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CelestialObjectList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      }
+    },
+    "/planets/{id}": {
+      "put": {
+        "x-audience": "COMPONENT_INTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "Update a planet",
+        "operationId": "updatePlanet",
+        "description": "Update a planet in the universe. For missing fields, it will be just omitted to update the planet. This operation supports `If-Match` conditional request.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/If-Match"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Planet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Planet updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Planet"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          }
+        }
+      },
+      "delete": {
+        "x-audience": "COMPONENT_INTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "Delete a planet",
+        "operationId": "deletePlanet",
+        "description": "Delete a planet from the universe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Planet deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Planet"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          }
+        }
+      },
+      "get": {
+        "x-audience": "PUBLIC_EXTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "Get planet info",
+        "operationId": "getPlanet",
+        "description": "Get planet info",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated list of resource relationships to expand; expand with `galaxy` would replace the galaxy field from galaxyId to the full galaxy resource."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of planets in the galaxy",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Planet"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      },
+      "patch": {
+        "x-audience": "PARTNER_EXTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "summary": "Update a planet using Merge Patch",
+        "operationId": "updatePlanetMergePatch",
+        "description": "Update a planet using Merge Patch as per RFC 7386.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/merge-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanetPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Galaxy updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Planet"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          }
+        }
+      }
+    },
+    "/events": {
+      "post": {
+        "x-audience": "PARTNER_EXTERNAL",
+        "tags": [
+          "dev"
+        ],
+        "operationId": "createCloudEvent",
+        "summary": "Create a new CloudEvent",
+        "description": "This operation creates a new CloudEvent with extended data.",
+        "requestBody": {
+          "content": {
+            "application/cloudevents+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtendedCloudEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CloudEvent created successfully",
+            "content": {
+              "application/cloudevents+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedCloudEvent"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          }
+        }
+      },
+      "get": {
+        "x-audience": "PUBLIC_EXTERNAL",
+        "tags": [
+          "event"
+        ],
+        "operationId": "listCloudEvents",
+        "summary": "Get a list of CloudEvents",
+        "description": "Get a list of events",
+        "responses": {
+          "200": {
+            "description": "List of CloudEvents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ExtendedCloudEvent"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          }
+        }
+      }
+    },
+    "/events/{id}": {
+      "get": {
+        "x-audience": "PUBLIC_EXTERNAL",
+        "tags": [
+          "event"
+        ],
+        "description": "Get a cloudevent by id",
+        "operationId": "getCloudEvent",
+        "summary": "Get a CloudEvent by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Single CloudEvent",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/cloudevents+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedCloudEvent"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "JWT": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "CelestialType": {
+        "type": "string",
+        "enum": [
+          "PLANET",
+          "STAR",
+          "GALAXY",
+          "BLACK_HOLE"
+        ],
+        "description": "Defines the type of celestial object."
+      },
+      "PlanetType": {
+        "type": "string",
+        "enum": [
+          "TERRESTRIAL",
+          "GAS_GIANT",
+          "ICE_GIANT",
+          "UNKNOWN"
+        ],
+        "description": "Defines the type of planet."
+      },
+      "GalaxyList": {
+        "type": "object",
+        "properties": {
+          "galaxies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Galaxy"
+            }
+          }
+        }
+      },
+      "Galaxy": {
+        "type": "object",
+        "description": "Galaxy infomation",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the galaxy"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the galaxy"
+          },
+          "siblings": {
+            "type": "array",
+            "items": {
+              "$schema": "#/components/schemas/Galaxy"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "StarList": {
+        "type": "object",
+        "properties": {
+          "stars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Star"
+            }
+          }
+        }
+      },
+      "Star": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the star"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the star"
+          },
+          "celestialType": {
+            "$ref": "#/components/schemas/CelestialType"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the star (e.g., red dwarf, blue giant)",
+            "enum": [
+              "RED_DRARF",
+              "BLUE_GIANT"
+            ]
+          },
+          "mass": {
+            "type": "number",
+            "description": "Mass of the star in solar masses"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "mass"
+        ]
+      },
+      "PlanetProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the planet"
+          },
+          "celestialType": {
+            "$ref": "#/components/schemas/CelestialType"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the planet"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PlanetType"
+          },
+          "size": {
+            "type": "number",
+            "description": "Size of the planet in Earth radii"
+          },
+          "galaxy": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "Belonging galaxy id of the planet"
+              },
+              {
+                "$ref": "#/components/schemas/Galaxy"
+              }
+            ]
+          }
+        }
+      },
+      "Planet": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PlanetProperties"
+          },
+          {
+            "required": [
+              "id",
+              "name",
+              "type",
+              "size"
+            ]
+          }
+        ]
+      },
+      "PlanetPatch": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PlanetProperties"
+          }
+        ]
+      },
+      "PlanetV2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the planet"
+          },
+          "celestialType": {
+            "$ref": "#/components/schemas/CelestialType"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the planet"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PlanetType"
+          },
+          "size": {
+            "type": "number",
+            "description": "Size of the planet in Earth radii"
+          },
+          "atmosphere": {
+            "type": "string",
+            "description": "Composition of the planet's atmosphere"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "size",
+          "atmosphere"
+        ]
+      },
+      "CelestialObjectList": {
+        "type": "object",
+        "properties": {
+          "celestialObjects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CelestialObject"
+            }
+          }
+        }
+      },
+      "CelestialObject": {
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Star"
+          },
+          {
+            "$ref": "#/components/schemas/Planet"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "celestialType",
+          "mapping": {
+            "STAR": "#/components/schemas/Star",
+            "PLANET": "#/components/schemas/Planet"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "size"
+        ]
+      },
+      "SatelliteList": {
+        "type": "object",
+        "properties": {
+          "satellites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Satellite"
+            }
+          }
+        }
+      },
+      "Satellite": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "planetId": {
+            "type": "string",
+            "description": "ID of the planet the satellite orbits"
+          }
+        }
+      },
+      "ExtendedCloudEvent": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CloudEvent"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "customField1": {
+                    "type": "string",
+                    "description": "Custom field 1 for extended data"
+                  },
+                  "customField2": {
+                    "type": "integer",
+                    "description": "Custom field 2 for extended data"
+                  }
+                },
+                "required": [
+                  "customField1",
+                  "customField2"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "PatchRequest": {
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "$ref": "#/components/schemas/JSONPatchRequestAddReplaceTest"
+            },
+            {
+              "$ref": "#/components/schemas/JSONPatchRequestRemove"
+            },
+            {
+              "$ref": "#/components/schemas/JSONPatchRequestMoveCopy"
+            }
+          ]
+        }
+      },
+      "JSONPatchRequestAddReplaceTest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "value",
+          "op",
+          "path"
+        ],
+        "properties": {
+          "path": {
+            "description": "A JSON Pointer path.",
+            "type": "string"
+          },
+          "value": {
+            "description": "The value to add, replace or test."
+          },
+          "op": {
+            "description": "The operation to perform.",
+            "type": "string",
+            "enum": [
+              "add",
+              "replace",
+              "test"
+            ]
+          }
+        }
+      },
+      "JSONPatchRequestRemove": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "op",
+          "path"
+        ],
+        "properties": {
+          "path": {
+            "description": "A JSON Pointer path.",
+            "type": "string"
+          },
+          "op": {
+            "description": "The operation to perform.",
+            "type": "string",
+            "enum": [
+              "remove"
+            ]
+          }
+        }
+      },
+      "JSONPatchRequestMoveCopy": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from",
+          "op",
+          "path"
+        ],
+        "properties": {
+          "path": {
+            "description": "A JSON Pointer path.",
+            "type": "string"
+          },
+          "op": {
+            "description": "The operation to perform.",
+            "type": "string",
+            "enum": [
+              "move",
+              "copy"
+            ]
+          },
+          "from": {
+            "description": "A JSON Pointer path.",
+            "type": "string"
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that uniquely identifies the problem type in the context of the provided API.\n",
+            "default": "about:blank",
+            "example": "/some/uri-reference"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable for engineers,  usually not suited for non-technical stakeholders and not localized.\n",
+            "example": "some title for the error situation"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The HTTP status code generated by the origin server for this occurrence of the problem.\n",
+            "minimum": 100,
+            "maximum": 600,
+            "exclusiveMaximum": 600
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human-readable explanation specific to this occurrence of the problem, helping to  pinpoint the problem and providing advice on how to proceed. Written in English and  readable for engineers, usually not suited for non-technical stakeholders and not localized.\n",
+            "example": "some description for the error situation"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that identifies the specific occurrence of the problem, e.g. by adding  a fragment identifier or sub-path to the problem type. May be used to locate the root  cause of this problem occurrence in the source code.\n",
+            "example": "/some/uri-reference#specific-occurrence-context"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status"
+        ]
+      },
+      "Unauthorized": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Problem"
+          },
+          {
+            "properties": {
+              "status": {
+                "type": "integer",
+                "example": 401
+              },
+              "title": {
+                "type": "string",
+                "example": "Unauthorized"
+              },
+              "detail": {
+                "type": "string",
+                "example": "Authentication is required and has failed or has not yet been provided."
+              }
+            }
+          }
+        ]
+      },
+      "Forbidden": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Problem"
+          },
+          {
+            "properties": {
+              "status": {
+                "type": "integer",
+                "example": 403
+              },
+              "title": {
+                "type": "string",
+                "example": "Forbidden"
+              },
+              "detail": {
+                "type": "string",
+                "example": "The request was a valid request, but the server is refusing to respond to it."
+              }
+            }
+          }
+        ]
+      },
+      "Idempotency-Key": {
+        "description": "The **Idempotency-Key** is a free identifier created by the client to\nidentify a request. It is used by the service to identify repeated request\nto ensure idempotent behavior by sending the same (or a similar) response\nwithout executing the request a second time.\n\nClients should be careful as any subsequent requests with the same key may\nreturn the same response without further check. Thus, it is recommended to\nuse a UUID version 4 (random) or any other random string with enough\nentropy to avoid collisions.\n\nKeys expire after 24 hours. Clients are responsible to stay within this\nlimit, if they require idempotent behavior.\n\nSee [API Design Essentials-130][ade-130] for further details.\n\n[ade-130]: <https://alivedise.github.io/api-design-essentials/130>",
+        "type": "string",
+        "format": "uuid",
+        "example": "7da7a728-f910-11e6-942a-68f728c1ba70"
+      },
+      "BadRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Problem"
+          },
+          {
+            "properties": {
+              "status": {
+                "type": "integer",
+                "example": 400
+              },
+              "title": {
+                "type": "string",
+                "example": "Bad Request"
+              },
+              "detail": {
+                "type": "string",
+                "example": "The request could not be understood by the server due to malformed syntax."
+              }
+            }
+          }
+        ]
+      },
+      "NotFound": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Problem"
+          },
+          {
+            "properties": {
+              "status": {
+                "type": "integer",
+                "example": 404
+              },
+              "title": {
+                "type": "string",
+                "example": "Not Found"
+              },
+              "detail": {
+                "type": "string",
+                "example": "The requested resource could not be found but may be available in the future."
+              }
+            }
+          }
+        ]
+      },
+      "CloudEvent": {
+        "type": "object",
+        "required": [
+          "specversion",
+          "type",
+          "source",
+          "id"
+        ],
+        "properties": {
+          "specversion": {
+            "type": "string",
+            "enum": [
+              "1.0"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "description": "Event type following [ADE-603](https://alivedise.github.io/api-design-essentials/603) naming conventions",
+            "example": "com.example.someevent.v1.occurred"
+          },
+          "source": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Event source following [ADE-604](https://alivedise.github.io/api-design-essentials/604) guidelines",
+            "example": "https://example.com/v1/planets/earth"
+          },
+          "id": {
+            "type": "string",
+            "description": "Event identifier"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Event occurrence time or received time ([ADE-605](https://alivedise.github.io/api-design-essentials/605))"
+          },
+          "datacontenttype": {
+            "type": "string",
+            "default": "application/json"
+          },
+          "data": {
+            "type": "object",
+            "description": "Event payload"
+          },
+          "test": {
+            "type": "string",
+            "pattern": "^[a-z]+\\.[a-z]+$",
+            "description": "Test marker following [ADE-606](https://alivedise.github.io/api-design-essentials/606) guidelines"
+          },
+          "partitionkey": {
+            "type": "string",
+            "description": "Partition key for event routing ([ADE-609](https://alivedise.github.io/api-design-essentials/609))"
+          },
+          "sequence": {
+            "type": "string",
+            "description": "Event sequence for ordering ([ADE-610](https://alivedise.github.io/api-design-essentials/610))"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "TRACE",
+              "DEBUG",
+              "INFO",
+              "WARN",
+              "ERROR",
+              "FATAL"
+            ],
+            "description": "Event severity level ([ADE-611](https://alivedise.github.io/api-design-essentials/611))"
+          },
+          "recordedtime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time when the event was recorded ([ADE-612](https://alivedise.github.io/api-design-essentials/612))"
+          },
+          "expirytime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expiration time for temporary events ([ADE-608](https://alivedise.github.io/api-design-essentials/608))"
+          },
+          "traceparent": {
+            "type": "string",
+            "description": "Trace context for distributed tracing ([ADE-607](https://alivedise.github.io/api-design-essentials/607))",
+            "example": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+          },
+          "tracestate": {
+            "type": "string",
+            "description": "Trace state for distributed tracing ([ADE-607](https://alivedise.github.io/api-design-essentials/607))",
+            "example": "congo=t61rcWkgMzE"
+          }
+        }
+      }
+    },
+    "responses": {
+      "400": {
+        "description": "Bad Request",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/BadRequest"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Unauthorized"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Forbidden"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not Found",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/NotFound"
+            }
+          }
+        }
+      }
+    },
+    "headers": {
+      "ETag": {
+        "required": false,
+        "description": "The **ETag** header field in a response provides an opaque quoted string\nidentifying the distinct delivered resource. The same selected resource\ndepending on version and representation may be identified by multiple\nidentifiers. The **ETag** value is guaranteed to change whenever the\nresource changes, and thereby enabling optimistic updates.\n\nAn identifier consists of an opaque quoted string, possibly prefixed by\na weakness indicator. See [RFC 9110 Section 8.8.3][rfc-9110-8.8.3] as\nwell as [API Design Essentials-128][ade-128] for further details.\n\n[rfc-9110-8.8.3]: <https://tools.ietf.org/html/rfc9110#section-8.8.3>\n[ade-128]: <https://alivedise.github.io/api-design-essentials/128>",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "strong": {
+            "value": "5db68c06-1a68-11e9-8341-68f728c1ba70",
+            "summary": "Strong ETag"
+          },
+          "weak": {
+            "value": "W/\"xy\"",
+            "summary": "Weak ETag"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "If-Match": {
+        "name": "If-Match",
+        "in": "header",
+        "required": false,
+        "description": "The **If-Match** header field is used to declare a list of identifiers that\nare required to match the current resource version identifier in at least\none position as a pre-condition for executing the request on the server\nside. This behavior is used to validate and reject optimistic updates, by\nchecking if the resource version a consumer has based his changes on is\noutdated on arrival of the change request to prevent lost updates.\n\nIf the pre-condition fails the server will respond with status code **412**\n(Precondition Failed). See [RFC 9110 Section 13.1.1][rfc-9110-13.1.1] as\nwell as [API Design Essentials-131][ade-131] for further details.\n\n[rfc-9110-13.1.1]: <https://tools.ietf.org/html/rfc9110#section-13.1.1>\n[ade-131]: <https://alivedise.github.io/api-design-essentials/131>",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "strong": {
+            "value": "5db68c06-1a68-11e9-8341-68f728c1ba70",
+            "summary": "Strong ETag"
+          },
+          "weak": {
+            "value": "W/\"xy\"",
+            "summary": "Weak ETag"
+          }
+        }
+      }
+    }
+  }
+}

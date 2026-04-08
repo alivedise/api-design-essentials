@@ -1,10 +1,10 @@
 <template>
-  <div class="adp-nav-container" v-if="hasSidebar">
+  <div class="ade-nav-container" v-if="hasSidebar">
     <div>
-      <div class="adp-nav-hero">
-        ADP
+      <div class="ade-nav-hero">
+        ADE
       </div>
-      <span class="nav-sub">API Design Principle</span>
+      <span class="nav-sub">API Design Essentials</span>
       <Badge type="warning" text="BETA" />
     </div>
   </div>
@@ -16,14 +16,14 @@ const { hasSidebar } = useSidebar()
 </script>
 
 <style>
-.adp-nav-container {
+.ade-nav-container {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   padding: 15px 0;
 }
-.adp-nav-hero {
+.ade-nav-hero {
   font-size: 20px;
   background: -webkit-linear-gradient(left, #005180, white, #0186d1);
   -webkit-background-clip: text;

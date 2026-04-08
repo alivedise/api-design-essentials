@@ -1,3 +1,7 @@
+:root {
+  --vp-c-brand-1: #0186d1;
+}
+
 .VPSidebarItem .text {
   white-space: nowrap;
   overflow: hidden;
